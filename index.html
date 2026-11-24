@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Puerto Chorrillano - Cevichería</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --panel-bg: rgba(255, 255, 255, 0.90);
+      --texto-oscuro: #0b2545;
+      --azul-marino: #13315c;
+      --acento-mar: #0e7c86;
+      --rojo-carta: #d9503a;
+      --navy-carta: #1f3a6b;
+      --ink-carta: #14224a;
+      --borde-suave: rgba(19, 49, 92, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--texto-oscuro);
+      min-height: 100vh;
+      background-color: #16879c;
+    }
+
+    /* Fondo en capa propia: su tamaño depende de la pantalla, no del contenido */
+    .fondo-fijo {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      height: 100lvh;
+      background: #16879c url("assets/fondo-puerto.jpg") center top / cover no-repeat;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Capa sutil para asegurar legibilidad sin tapar la ilustración */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(11, 37, 69, 0.12) 0%,
+        rgba(4, 52, 68, 0.22) 100%
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Capa de animación de burbujas al cambiar de sección (sin archivos extra) */
+    .burbujas-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 31;
+    }
+
+    .burbuja {
+      position: absolute;
+      bottom: -80px;
+      border-radius: 50%;
+      background: radial-gradient(
+        circle at 30% 30%,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(173, 232, 244, 0.42) 55%,
+        rgba(14, 124, 134, 0.18) 100%
+      );
+      border: 1.5px solid rgba(19, 49, 92, 0.35);
+      box-shadow:
+        inset 0 0 8px rgba(255, 255, 255, 0.75),
+        0 4px 12px rgba(19, 49, 92, 0.15);
+      opacity: 0;
+      animation: subirBurbuja var(--duracion, 1.05s) cubic-bezier(0.22, 0.85, 0.36, 1) forwards;
+    }
+
+    @keyframes subirBurbuja {
+      0%   { transform: translateY(0) translateX(0) scale(0.5); opacity: 0; }
+      12%  { opacity: 0.95; }
+      30%  { transform: translateY(-32vh) translateX(var(--deriva, 16px)) scale(0.85); }
+      55%  { transform: translateY(-62vh) translateX(calc(var(--deriva, 16px) * -0.7)) scale(1); opacity: 0.9; }
+      80%  { transform: translateY(-92vh) translateX(calc(var(--deriva, 16px) * 0.5)) scale(1.1); opacity: 0.7; }
+      100% { transform: translateY(-118vh) translateX(0) scale(1.15); opacity: 0; }
+    }
+
+    /* Ola de agua que cubre la pantalla al cambiar de sección */
+    .ola {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: calc(100lvh + 280px);
+      display: none;
+      flex-direction: column;
+      z-index: 30;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .ola.en-curso { display: flex; }
+    .ola-borde {
+      flex: 0 0 140px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='140'%3E%3Cpath d='M0 70C60 20 120 20 180 70S300 120 360 70V140H0Z' fill='%230e7c86'/%3E%3Cpath d='M0 70C60 20 120 20 180 70S300 120 360 70' fill='none' stroke='white' stroke-opacity='.85' stroke-width='6'/%3E%3C/svg%3E") repeat-x 0 0 / 360px 140px;
+      animation: oleaje 1.1s linear infinite;
+    }
+    .ola-borde.abajo { transform: scaleY(-1); animation-direction: reverse; }
+    .ola-cuerpo {
+      flex: 1;
+      background: linear-gradient(to bottom, #0e7c86 0%, #0b5f78 50%, #13315c 100%);
+    }
+    @keyframes oleaje { to { background-position-x: -360px; } }
+
+    /* Menú de navegación superior */
+    .nav-top {
+      position: sticky;
+      top: 12px;
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      padding: 0 12px;
+    }
+
+    .nav-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.30);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      padding: 7px 10px;
+      border-radius: 999px;
+      box-shadow: 0 8px 24px rgba(11, 37, 69, 0.18);
+    }
+
+    .nav-btn {
+      border: none;
+      background: rgba(255, 255, 255, 0.30);
+      color: var(--azul-marino);
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(19, 49, 92, 0.18);
+    }
+
+    .nav-btn.activo {
+      background: var(--azul-marino);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(19, 49, 92, 0.45);
+    }
+
+    /* Contenedor principal (en vista horizontal se mantiene el espaciado actual) */
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 135px 16px 64px;
+    }
+
+    /* Panel de cada sección */
+    .seccion {
+      display: none;
+      background: var(--panel-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--borde-suave);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 14px 36px rgba(11, 37, 69, 0.22);
+      animation: aparecer 0.9s cubic-bezier(0.22, 0.85, 0.36, 1) both;
+    }
+
+    .seccion.activa {
+      display: block;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ola, .burbujas-layer { display: none !important; }
+      .seccion { animation-duration: 0.01s; }
+    }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(40px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .seccion-titulo {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: var(--azul-marino);
+      border-bottom: 3px solid var(--acento-mar);
+      padding-bottom: 6px;
+      display: inline-block;
+    }
+
+    .texto-destacado {
+      font-size: 1.12rem;
+      line-height: 1.65;
+      color: var(--texto-oscuro);
+      margin-bottom: 22px;
+      font-weight: 500;
+    }
+
+    /* INICIO */
+    .inicio-foto-wrap {
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 10px 26px rgba(11, 37, 69, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      background: #0b2545;
+    }
+
+    .inicio-foto {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* RETO VIRAL */
+    .reto-banner {
+      background: linear-gradient(135deg, #13315c 0%, #0e7c86 100%);
+      color: #ffffff;
+      padding: 22px 24px;
+      border-radius: 18px;
+      text-align: center;
+      margin-bottom: 22px;
+      box-shadow: 0 8px 22px rgba(19, 49, 92, 0.25);
+    }
+
+    .reto-banner p {
+      font-size: 1.25rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+
+    /* Contenedor adaptable para YouTube Short */
+    .video-short-wrap {
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto 24px;
+      aspect-ratio: 9 / 16;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(11, 37, 69, 0.24);
+      border: 2px solid rgba(19, 49, 92, 0.18);
+      background: #0b2545;
+    }
+
+    .video-short-wrap iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
+    .reto-cta {
+      text-align: center;
+      padding-top: 6px;
+    }
+
+    .reto-cta-texto {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.5rem;
+      color: var(--azul-marino);
+      margin-bottom: 14px;
+    }
+
+    .btn-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #25D366;
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.08rem;
+      padding: 14px 30px;
+      border-radius: 999px;
+      box-shadow: 0 8px 20px rgba(37, 211, 102, 0.35);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+    }
+
+    .btn-whatsapp:hover {
+      background: #1ebe5d;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(37, 211, 102, 0.45);
+    }
+
+    /* UBICACIÓN */
+    .mapa-wrap {
+      position: relative;
+      width: 100%;
+      padding-bottom: 56.25%;
+      height: 0;
+      overflow: hidden;
+      border-radius: 18px;
+      box-shadow: 0 10px 26px rgba(11, 37, 69, 0.18);
+      border: 1px solid var(--borde-suave);
+    }
+
+    .mapa-wrap iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    /* CARTA */
+    #carta {
+      background: rgba(205, 230, 240, 0.94);
+      color: var(--ink-carta);
+    }
+
+    .carta-logo-header {
+      text-align: center;
+      padding: 6px 0 18px;
+    }
+
+    .carta-logo-img {
+      max-width: 290px;
+      width: 78%;
+      height: auto;
+      display: inline-block;
+      filter: drop-shadow(0 4px 10px rgba(20, 34, 74, 0.12));
+    }
+
+    .carta-wrap {
+      position: relative;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .carta-card {
+      background: #ffffff;
+      border-radius: 26px;
+      padding: 20px 22px 22px;
+      margin-top: 16px;
+      box-shadow: 0 6px 18px rgba(20, 34, 74, 0.08);
+    }
+
+    .carta-card h2,
+    .carta-card h3 {
+      font-family: 'Fredoka', sans-serif;
+      color: var(--rojo-carta);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .carta-card h2 {
+      text-align: center;
+      font-size: 1.45rem;
+      margin-bottom: 12px;
+    }
+
+    .carta-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 8px;
+    }
+
+    .carta-card ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .carta-card li {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 14px;
+      padding: 5px 0;
+      font-weight: 500;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      line-height: 1.25;
+      color: var(--ink-carta);
+    }
+
+    .carta-card li b {
+      font-weight: 600;
+      flex: none;
+    }
+
+    .carta-cols {
+      display: grid;
+      gap: 18px;
+    }
+
+    .carta-big li {
+      font-size: 1rem;
+      flex-wrap: wrap;
+      gap: 0 12px;
+      padding: 8px 0;
+    }
+
+    .carta-big li > span {
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 500;
+    }
+
+    .carta-big small {
+      display: block;
+      flex-basis: 100%;
+      order: 3;
+      font-size: 0.74rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      opacity: 0.85;
+    }
+
+    .carta-split {
+      display: grid;
+      gap: 14px;
+    }
+
+    .carta-split h2 {
+      margin-bottom: 6px;
+    }
+
+    .carta-ronda {
+      text-align: center;
+    }
+
+    .carta-ronda li {
+      justify-content: center;
+      padding: 3px 0;
+    }
+
+    .carta-ronda .precio {
+      margin-top: 8px;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--rojo-carta);
+    }
+
+    @media (min-width: 620px) {
+      .carta-cols {
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+
+      .carta-split {
+        grid-template-columns: 1fr 1fr;
+        gap: 28px;
+      }
+    }
+
+    /* Espacio superior extra SOLO en orientación vertical (portrait) */
+    @media (orientation: portrait) {
+      .app-wrapper {
+        padding-top: 165px;
+      }
+    }
+
+    @media (max-width: 700px) {
+
+      .nav-top {
+        top: 8px;
+      }
+
+      .nav-bar {
+        gap: 5px;
+        padding: 6px 8px;
+      }
+
+      .nav-btn {
+        padding: 8px 13px;
+        font-size: 0.86rem;
+      }
+
+      .app-wrapper {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-bottom: 48px;
+      }
+
+      .seccion {
+        padding: 20px 16px;
+        border-radius: 18px;
+      }
+
+      .texto-destacado {
+        font-size: 1.02rem;
+      }
+
+      .reto-banner p {
+        font-size: 1.08rem;
+      }
+
+      .mapa-wrap {
+        padding-bottom: 75%;
+      }
+    }
+
+    /* En pantallas verticales angostas, asegurar espacio amplio para ver el letrero superior */
+    @media (orientation: portrait) and (max-width: 700px) {
+      .app-wrapper {
+        padding-top: 175px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="fondo-fijo" aria-hidden="true"></div>
+
+  <div id="ola" class="ola" aria-hidden="true"><div class="ola-borde"></div><div class="ola-cuerpo"></div><div class="ola-borde abajo"></div></div>
+
+  <!-- Contenedor de burbujas al cambiar de sección -->
+  <div id="burbujas-layer" class="burbujas-layer" aria-hidden="true"></div>
+
+  <!-- Menú de navegación superior -->
+  <header class="nav-top">
+    <nav class="nav-bar" aria-label="Navegación principal">
+      <button class="nav-btn activo" data-target="inicio">Inicio</button>
+      <button class="nav-btn" data-target="reto-viral">Reto Viral</button>
+      <button class="nav-btn" data-target="ubicacion">Ubicación</button>
+      <button class="nav-btn" data-target="carta">Carta</button>
+    </nav>
+  </header>
+
+  <main class="app-wrapper">
+
+    <!-- 1. INICIO -->
+    <section id="inicio" class="seccion activa">
+      <h1 class="seccion-titulo">Inicio</h1>
+      <p class="texto-destacado">
+        Somos apasionados por nuestro sabor y se nota en cada corte, cada ají, cada limón recién exprimido. Ven a probar el mejor ceviche de todo Chorrillos y déjate conquistar 🍋🐟🔥.
+      </p>
+      <div class="inicio-foto-wrap">
+        <img class="inicio-foto" src="assets/puerto-somos.jpg" alt="Equipo de Puerto Chorrillano Cevichería" />
+      </div>
+    </section>
+
+    <!-- 2. RETO VIRAL -->
+    <section id="reto-viral" class="seccion">
+      <h2 class="seccion-titulo">Reto Viral</h2>
+      <div class="reto-banner">
+        <p>GANA S/. 1,000 soles! solo debe acabar nuestro Trio XL en menos de 15 minutos.</p>
+      </div>
+
+      <!-- Video Short incrustado desde YouTube -->
+      <div class="video-short-wrap">
+        <iframe
+          src="https://www.youtube.com/embed/z8uCIV-muG0?si=UdSmV7urZRNtSmaW"
+          title="Reto Viral - Puerto Chorrillano Cevichería"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
+      </div>
+
+      <div class="reto-cta">
+        <p class="reto-cta-texto">¿Te animas a GANAR?</p>
+        <!-- Reemplaza el href="#" con tu enlace de WhatsApp más adelante -->
+        <a class="btn-whatsapp" href="#" target="_blank" rel="noopener noreferrer">
+          Quiero participar
+        </a>
+      </div>
+    </section>
+
+    <!-- 3. UBICACIÓN -->
+    <section id="ubicacion" class="seccion">
+      <h2 class="seccion-titulo">Ubicación</h2>
+      <p class="texto-destacado">Aquí está el point de los retos virales.</p>
+      <div class="mapa-wrap">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3899.880515806387!2d-77.0132221!3d-12.188532499999997!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9105b7ed2b8ae987%3A0xb6ca89bea52c7390!2sPuerto%20Chorrillano%20-%20Cevicher%C3%ADa!5e0!3m2!1ses!2spe!4v1795475778991!5m2!1ses!2spe" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      </div>
+    </section>
+
+    <!-- 4. CARTA -->
+    <section id="carta" class="seccion">
+      <div class="carta-wrap">
+        <div class="carta-logo-header">
+          <img class="carta-logo-img" src="assets/logo-puerto.png" alt="Puerto Chorrillano Cevichería" />
+        </div>
+
+        <div class="carta-card">
+          <h2>Para empezar</h2>
+          <ul>
+            <li><span>Choritos a la chalaca (8 unds)</span><b>19</b></li>
+            <li><span>Langostinos al panko en salsa de maracuyá (6 unds)</span><b>20</b></li>
+            <li><span>Conchitas a la parmesana (6 unds)</span><b>27</b></li>
+            <li><span>Wantán de langostinos (6 unds)</span><b>19</b></li>
+          </ul>
+        </div>
+
+        <div class="carta-card">
+          <h2>Los cevicheros</h2>
+          <ul>
+            <li><span>Ceviche de pescado</span><b>28</b></li>
+            <li><span>Ceviche de conchas negras</span><b>38</b></li>
+            <li><span>Ceviche mixto pescado y mariscos</span><b>34</b></li>
+            <li><span>Ceviche de pescado y pulpo</span><b>34</b></li>
+            <li><span>Ceviche de pescado y langostinos</span><b>36</b></li>
+          </ul>
+        </div>
+
+        <div class="carta-card">
+          <h2>Especiales del puerto</h2>
+          <ul>
+            <li><span>Mariscos a la parrilla</span><b>35</b></li>
+            <li><span>Pulpo al olivo</span><b>28</b></li>
+            <li><span>Tiradito de pescado</span><b>28</b></li>
+            <li><span>Tacu tacu en salsa de mariscos</span><b>30</b></li>
+            <li><span>Espagueti en salsa de mariscos</span><b>30</b></li>
+          </ul>
+        </div>
+
+        <div class="carta-card">
+          <div class="carta-cols">
+            <div>
+              <h3>Para entrar en calor</h3>
+              <ul>
+                <li><span>Parihuela mixta con pescado</span><b>40</b></li>
+                <li><span>Sudado de pescado</span><b>30</b></li>
+                <li><span>Chilcano especial</span><b>25</b></li>
+                <li><span>Chilcano clásico</span><b>10</b></li>
+                <li><span>Chilcano acevichado</span><b>15</b></li>
+                <li><span>Chupe de pescado</span><b>37</b></li>
+                <li><span>Chupe de langostinos</span><b>40</b></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Crocantes</h3>
+              <ul>
+                <li><span>Chicharrón de pescado</span><b>26</b></li>
+                <li><span>Chicharrón de mixto</span><b>34</b></li>
+                <li><span>Chicharrón de calamar</span><b>39</b></li>
+                <li><span>Chicharrón de pota</span><b>24</b></li>
+                <li><span>Jalea mixta</span><b>39</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="carta-card">
+          <div class="carta-cols">
+            <div>
+              <h3>Pa' los causas</h3>
+              <ul>
+                <li><span>Causa acevichada</span><b>26</b></li>
+                <li><span>Causa de pulpa de langostinos</span><b>26</b></li>
+                <li><span>Causa de pulpa de cangrejo</span><b>26</b></li>
+              </ul>
+            </div>
+            <div>
+              <h3>Arroceros</h3>
+              <ul>
+                <li><span>Arroz con mariscos</span><b>28</b></li>
+                <li><span>Chaufa de mariscos</span><b>27</b></li>
+                <li><span>Chaufa de pescado</span><b>27</b></li>
+                <li><span>Chaufa de langostinos</span><b>33</b></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="carta-card">
+          <div class="carta-split">
+            <div>
+              <h2>Dúos chorrillanos</h2>
+              <ul class="carta-big">
+                <li><span>Dúo clásico</span><b>28</b><small>Ceviche + arroz con mariscos</small></li>
+                <li><span>Dúo oriental</span><b>28</b><small>Ceviche + chaufa de mariscos</small></li>
+                <li><span>Dúo crocante</span><b>28</b><small>Ceviche + chicharrón de pescado</small></li>
+                <li><span>Dúo carretillero</span><b>28</b><small>Ceviche + chicharrón de pota</small></li>
+                <li><span>Dúo con causa</span><b>28</b><small>Ceviche + causa</small></li>
+                <li><span>Dúo conchas negras</span><b>36</b><small>Ceviche de conchas negras + arroz con mariscos</small></li>
+              </ul>
+            </div>
+            <div>
+              <h2>Tríos chorrillanos</h2>
+              <ul class="carta-big">
+                <li><span>Trío clásico</span><b>36</b><small>Ceviche + chicharrón de pescado + arroz con mariscos</small></li>
+                <li><span>Trío oriental</span><b>36</b><small>Ceviche + chicharrón de pescado + chaufa de mariscos</small></li>
+                <li><span>Trío con causa</span><b>36</b><small>Causa + chicharrón de pescado + arroz con mariscos</small></li>
+                <li><span>Trío ceviche y causa</span><b>36</b><small>Ceviche + chicharrón de pescado + causa de pulpa del olivo</small></li>
+                <li><span>Trío conchas negras</span><b>45</b><small>Ceviche de conchas negras + chicharrón de pescado + arroz con mariscos</small></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="carta-card">
+          <h2>Rondas marinas chorrillanas</h2>
+          <div class="carta-split">
+            <div class="carta-ronda">
+              <h3>Ronda clásica</h3>
+              <ul>
+                <li>Ceviche de pescado</li>
+                <li>Arroz con mariscos</li>
+                <li>Chaufa de mariscos</li>
+                <li>Causa rellena</li>
+                <li>Chicharrón de pescado</li>
+              </ul>
+              <p class="precio">S/65</p>
+            </div>
+            <div class="carta-ronda">
+              <h3>Ronda premium</h3>
+              <ul>
+                <li>Ceviche conchas negras</li>
+                <li>Langostinos al panko</li>
+                <li>Pulpo al olivo</li>
+                <li>Arroz con mariscos</li>
+                <li>Wantanes rellenos de langostinos</li>
+              </ul>
+              <p class="precio">S/77</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="carta-card">
+          <h2>Criollos y extras</h2>
+          <ul>
+            <li><span>Tacu wok c/n lomo saltado</span><b>28</b></li>
+            <li><span>Lomo saltado</span><b>28</b></li>
+            <li><span>Tallarín saltado</span><b>28</b></li>
+            <li><span>Arroz con pato</span><b>36</b></li>
+            <li><span>Frejoles con seco de cabrito</span><b>36</b></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    const botones = document.querySelectorAll(".nav-btn");
+    const secciones = document.querySelectorAll(".seccion");
+    const burbujasLayer = document.getElementById("burbujas-layer");
+
+    function lanzarBurbujas() {
+      if (!burbujasLayer) return;
+      burbujasLayer.innerHTML = "";
+
+      const cantidad = window.innerWidth < 700 ? 22 : 34;
+      for (let i = 0; i < cantidad; i++) {
+        const b = document.createElement("span");
+        b.className = "burbuja";
+
+        const size = Math.floor(Math.random() * 34) + 14; // 14px a 48px
+        const left = Math.random() * 94; // 0% a 94%
+        const delay = (Math.random() * 0.9).toFixed(2);
+        const duration = (Math.random() * 0.8 + 1.1).toFixed(2); // 1.1s a 1.9s
+        const deriva = Math.floor(Math.random() * 90 - 45); // -27px a +27px
+
+        b.style.width = `${size}px`;
+        b.style.height = `${size}px`;
+        b.style.left = `${left}%`;
+        b.style.animationDelay = `${delay}s`;
+        b.style.setProperty("--duracion", `${duration}s`);
+        b.style.setProperty("--deriva", `${deriva}px`);
+
+        burbujasLayer.appendChild(b);
+      }
+
+      setTimeout(() => {
+        burbujasLayer.innerHTML = "";
+      }, 3200);
+    }
+
+    const ola = document.getElementById("ola");
+    const reducirMovimiento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const DURACION_OLA = 1900;
+    let animando = false;
+
+    function mostrarSeccion(objetivoId) {
+      secciones.forEach((s) => s.classList.remove("activa"));
+      const seccionActiva = document.getElementById(objetivoId);
+      if (seccionActiva) seccionActiva.classList.add("activa");
+      window.scrollTo(0, 0);
+    }
+
+    botones.forEach((boton) => {
+      boton.addEventListener("click", () => {
+        const objetivoId = boton.getAttribute("data-target");
+        if (animando || boton.classList.contains("activo")) return;
+
+        botones.forEach((b) => b.classList.remove("activo"));
+        boton.classList.add("activo");
+
+        if (reducirMovimiento || !ola.animate) {
+          mostrarSeccion(objetivoId);
+          return;
+        }
+
+        animando = true;
+        const alto = ola.offsetHeight;
+        const pantalla = window.innerHeight;
+        ola.classList.add("en-curso");
+        const anim = ola.animate(
+          [
+            { transform: `translateY(${pantalla}px)`, easing: "cubic-bezier(0.45, 0, 0.35, 1)" },
+            { transform: "translateY(-140px)", offset: 0.45 },
+            { transform: "translateY(-140px)", offset: 0.5, easing: "cubic-bezier(0.55, 0, 0.55, 1)" },
+            { transform: `translateY(${-alto}px)` }
+          ],
+          { duration: DURACION_OLA, fill: "forwards" }
+        );
+
+        lanzarBurbujas();
+        // La pantalla está cubierta por el agua: aquí se cambia la sección sin que se note el salto
+        setTimeout(() => mostrarSeccion(objetivoId), DURACION_OLA * 0.47);
+        anim.onfinish = () => {
+          ola.classList.remove("en-curso");
+          anim.cancel();
+          animando = false;
+        };
+      });
+    });
+  </script>
+
+</body>
+</html>
